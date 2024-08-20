@@ -16,10 +16,10 @@ response_models = {
 }
 
 
-@router.post("/webhooks", response_model=SuccessModel, responses=response_models)
-async def receive_webhook(webhook: WebhookDTO,
-                          kafka_producer_service: KafkaProducerService = Depends(get_kafka_producer_service),
-                          ):
+@router.post("/save", response_model=SuccessModel, responses=response_models)
+async def save(webhook: WebhookDTO,
+               kafka_producer_service: KafkaProducerService = Depends(get_kafka_producer_service),
+               ):
     if not webhook.data:
         raise HTTPException(status_code=400, detail="Webhook data is empty")
 
@@ -30,3 +30,18 @@ async def receive_webhook(webhook: WebhookDTO,
         return SuccessModel(data=received_data.dict())
     else:
         raise HTTPException(status_code=500, detail="Failed to process webhook data")
+
+
+@router.get("/sensor_data/all", response_model=SuccessModel, responses=response_models)
+async def get_all(kafka_producer_service: KafkaProducerService = Depends(get_kafka_producer_service)):
+
+    get_all_service = WebhookReceiverService(kafka_producer_service)
+    fetch_data = get_all_service.get_all()
+
+    return SuccessModel(data={"sensor_data": "data"})
+
+
+@router.get("/sensor_data/{device_id}", response_model=SuccessModel, responses=response_models)
+async def get_by_id(device_id: int,
+                    kafka_producer_service: KafkaProducerService = Depends(get_kafka_producer_service)):
+    pass

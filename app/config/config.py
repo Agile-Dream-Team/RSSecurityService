@@ -3,6 +3,7 @@ from pydantic import Field
 
 
 class Settings(BaseSettings):
+    kafka_bootstrap_servers: str
     kafka_host: str = Field(..., env='KAFKA_HOST')
     kafka_port: str = Field(..., env='KAFKA_PORT')
     kafka_topics: list[str] = Field(..., env='KAFKA_TOPICS')

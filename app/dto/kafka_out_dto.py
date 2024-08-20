@@ -3,5 +3,8 @@ from typing import Dict
 
 
 class KafkaOutDTO(BaseModel):
+    event: str
     data: Dict
-    source: str
+    date_time: str
+    client_id: str
+    uuid: str

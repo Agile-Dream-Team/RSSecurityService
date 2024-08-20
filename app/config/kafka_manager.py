@@ -57,23 +57,3 @@ class KafkaManager:
             logging.info("Health check ping sent")
         except KafkaException as e:
             logging.error(f"Failed to send health check ping: {e}")
-
-    def receive_health_check_ping(self):
-        self.consumer.subscribe(self.topics)
-        try:
-            msg = self.consumer.poll(timeout=10.0)
-            if msg is None:
-                return False
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    logging.info(f"End of partition reached {msg.partition()}")
-                elif msg.error():
-                    logging.error(f"Error occurred: {msg.error().str()}")
-                    return False
-            else:
-                if msg.key() == b"ping" and msg.value() == b"ping":
-                    logging.info("Health check ping received")
-                    return True
-        except KafkaException as e:
-            logging.error(f"Failed to receive health check ping: {e}")
-        return False

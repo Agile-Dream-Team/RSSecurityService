@@ -10,6 +10,8 @@ class WebhookReceiverService:
         self.kafka_producer_service = kafka_producer_service
 
     def receive_webhook(self, webhook_data: WebhookDTO):
-        # Handle validation of webhook data
-        self.kafka_producer_service.process_webhook_to_kafka(webhook_data)
-        return webhook_data
+        # TODO: Handle validation of webhook data
+        return self.kafka_producer_service.process_webhook_to_kafka(webhook_data)
+
+    def get_all(self):
+        return self.kafka_producer_service.get_all()
