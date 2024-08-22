@@ -1,14 +1,13 @@
 import logging
-from ..config.kafka_manager import KafkaManager
 from ..dto.kafka_out_dto import KafkaOutDTO
 from ..dto.webhook_in_dto import WebhookDTO
 from confluent_kafka import KafkaException
+from kafka_rs.client.kafka_client import KafkaClient
 
 
 class KafkaProducerService:
-    def __init__(self, kafka_manager: KafkaManager):
-        self.producer = kafka_manager.producer
-        self.topic = kafka_manager.topics
+    def __init__(self, kafka_client: KafkaClient):
+        self.kafka_client = kafka_client
         logging.basicConfig(level=logging.INFO)
 
     def process_webhook_to_kafka(self, webhook_dto: WebhookDTO):
@@ -20,21 +19,15 @@ class KafkaProducerService:
                 client_id=webhook_dto.client_id,
                 uuid=webhook_dto.uuid
             )
-            logging.info(f"Sending message to Kafka: {kafka_out_dto.json()}")
-
-            self.producer.produce(webhook_dto.event, value=kafka_out_dto.json())
-            self.producer.flush()
+            self.kafka_client.send_message(webhook_dto.event, kafka_out_dto.json())
         except KafkaException as e:
             logging.error(f"Failed to send message: {e}")
             raise
 
     def get_all(self):
-        logging.info("Sending GET_ALL message to Kafka")
         try:
-            self.producer.produce("get_all", value='{"event": "get_all"}')
-            self.producer.flush()
+
+            self.kafka_client.send_message("get_all", '{"event": "get_all"}')
         except KafkaException as e:
             logging.error(f"Failed to send message: {e}")
             raise
-
-

@@ -30,7 +30,7 @@ class EventType(str, Enum):
 
 
 class EventActionConsume(str, Enum):
-    CREATE = "create"
+    SAVE = "save"
     UPDATE = "update"
     DELETE = "delete"
     GET_ALL = "get_all"

@@ -1,9 +1,10 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 
 
 class SuccessModel(BaseModel):
     status: str = "success"
-    data: dict
+    data: Dict[str, Any]
 
 
 class ErrorModel(BaseModel):

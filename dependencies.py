@@ -1,13 +1,8 @@
-import os
-
-from app.config.kafka_manager import KafkaManager
-from app.services.kafka_producer_service import KafkaProducerService
-
-# dependencies.py
 import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 
 security = HTTPBearer()
 
@@ -28,19 +23,3 @@ async def has_access(credentials: HTTPAuthorizationCredentials = Depends(securit
             status_code=401,
             detail=str(e))
 
-
-def get_kafka_producer_service() -> KafkaProducerService:
-    return KafkaProducerService(KafkaManager(
-        bootstrap_servers=f'{os.getenv("KAFKA_HOST")}:{os.getenv("KAFKA_PORT")}',
-        topics=os.getenv('KAFKA_TOPIC'),
-        group_id=os.getenv('KAFKA_GROUP_ID')
-    ))
-
-
-def startup_kafka_manager(app, settings):
-    app.state.kafka_manager = KafkaManager(
-        bootstrap_servers=f'{settings.kafka_host}:{settings.kafka_port}',
-        topics=settings.kafka_topics,  # Ensure topics are split into a list
-        group_id=settings.kafka_group_id
-    )
-    app.state.kafka_producer_service = KafkaProducerService(app.state.kafka_manager)
