@@ -1,7 +1,18 @@
+import json
+
 from fastapi import Request, HTTPException, Header
 from functools import wraps
 from app.exceptions.custom_exceptions import BadRequestException
 from enum import Enum
+
+# In `app/api/v1/utils.py`
+from app.shared import messages_consumed_event
+
+
+def clear(response_list):
+    response_list.clear()
+    messages_consumed_event.clear()  # Clear the event before waiting
+    messages_consumed_event.wait()
 
 
 async def validate_webhook(request: Request):
@@ -15,8 +26,20 @@ async def validate_x_authorization_header(x_authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid x-Authorization header")
 
 
-class EventType(str, Enum):
-    NORMAL = "normal"
+def parse_and_flatten_messages(messages):
+    parsed_messages = [json.loads(message) for message in messages]
+
+    flattened_messages = []
+    for message in parsed_messages:
+        if isinstance(message, list):
+            flattened_messages.extend(message)
+        else:
+            flattened_messages.append(message)
+
+    return flattened_messages
+
+
+class TopicEvent(str, Enum):
     HIGH_TEMP = "high_temp"
     LOW_TEMP = "low_temp"
     HIGH_HUMIDITY = "high_humidity"
@@ -29,7 +52,7 @@ class EventType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class EventActionConsume(str, Enum):
+class TopicActionRequest(str, Enum):
     SAVE = "save"
     UPDATE = "update"
     DELETE = "delete"
@@ -37,7 +60,7 @@ class EventActionConsume(str, Enum):
     GET_BY_ID = "get_by_id"
 
 
-class EventActionProduce(str, Enum):
-    GET_ALL_PRODUCE = "get_all_produce"
-    GET_BY_ID_PRODUCE = "get_by_id_produce"
-
+class TopicActionResponse(str, Enum):
+    SAVE_RESPONSE = "save_response"
+    GET_ALL_RESPONSE = "get_all_response"
+    GET_BY_ID_RESPONSE = "get_by_id_response"

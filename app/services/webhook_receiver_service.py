@@ -1,10 +1,12 @@
 import json
+import logging
 from typing import List, Dict, Any
 
 from app.dto.webhook_in_dto import WebhookDTO
 from app.services.kafka_producer_service import KafkaProducerService
 from kafka_rs.client import KafkaClient
-from app.shared import messages_get_all, messages_get_all_produce, messages_consumed_event
+from app.shared import messages_save_response, messages_get_all_response, messages_consumed_event
+from app.api.v1.utils import parse_and_flatten_messages
 
 
 class WebhookReceiverService:
@@ -14,19 +16,19 @@ class WebhookReceiverService:
         self.kafka_producer_service = KafkaProducerService(client)
 
     def receive_webhook(self, webhook_data: WebhookDTO):
-        return self.kafka_producer_service.process_webhook_to_kafka(webhook_data)
+        messages_save_response.clear()
+        messages_consumed_event.clear()  # Clear the event before waiting
+        self.kafka_producer_service.process_webhook_to_kafka(webhook_data)
+        messages_consumed_event.wait()
+        response = parse_and_flatten_messages(messages_save_response)
+        logging.info(f"Received data SAVE: {response}")
+        return response
 
     def get_all(self) -> list[Any]:
+        messages_get_all_response.clear()
+        messages_consumed_event.clear()  # Clear the event before waiting
         self.kafka_producer_service.get_all()
         messages_consumed_event.wait()
-        parsed_messages = [json.loads(message) for message in messages_get_all_produce]
-
-        # Flatten the nested array
-        flattened_messages = []
-        for message in parsed_messages:
-            if isinstance(message, list):
-                flattened_messages.extend(message)
-            else:
-                flattened_messages.append(message)
-
-        return flattened_messages
+        response = parse_and_flatten_messages(messages_get_all_response)
+        logging.info(f"Received data GET ALL: {response}")
+        return response

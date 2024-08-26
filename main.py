@@ -7,7 +7,7 @@ from pydantic import BaseModel, ValidationError
 
 from app.api.v1.webhooks.webhook_routes import router as webhook_router
 from app.config.config import Settings
-from app.shared import messages_get_all_produce, messages_consumed_event
+from app.shared import messages_get_all_response, messages_consumed_event, messages_save_response
 from kafka_rs.client import KafkaClient
 
 
@@ -59,25 +59,27 @@ async def get_health() -> HealthCheck:
     return HealthCheck()
 
 
-@kafka_client.topic('get_all_produce')
+@kafka_client.topic('get_all_response')
 def consume_message_prod(msg):
     try:
         data = msg.value().decode('utf-8')
-        messages_get_all_produce.append(data)
-        logging.info(f"Consumed message in get_all_produce: {data}")
+        messages_get_all_response.append(data)
+        logging.info(f"Consumed message in get_all_response: {data}")
         messages_consumed_event.set()
     except Exception as e:
-        logging.error(f"Error processing message in get_all_produce: {e}")
+        logging.error(f"Error processing message in get_all_response: {e}")
 
-"""
-@kafka_client.topic('get_all')
+
+@kafka_client.topic('save_response')
 def consume_message_get_all(msg):
     try:
         data = msg.value().decode('utf-8')
-        logging.info(f"Consumed message in get_all: {data}")
+        messages_save_response.append(data)
+        logging.info(f"Consumed message in save_response: {data}")
+        messages_consumed_event.set()
     except Exception as e:
-        logging.error(f"Error processing message in get_all: {e}")
-"""
+        logging.error(f"Error processing message in save_response: {e}")
+
 
 if __name__ == "__main__":
     uvicorn.run(

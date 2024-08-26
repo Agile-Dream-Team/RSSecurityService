@@ -1,9 +1,11 @@
+import logging
+
 from fastapi import APIRouter, HTTPException, Depends
 
 from app.dto.webhook_in_dto import WebhookDTO
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.webhook_receiver_service import WebhookReceiverService
-from kafka_rs.client import KafkaClient  # Assuming kafka_library is the module where KafkaClient is defined
+from kafka_rs.client import KafkaClient
 
 router = APIRouter()
 
@@ -18,6 +20,10 @@ def get_kafka_client() -> KafkaClient:
     return KafkaClient.instance()
 
 
+def get_webhook_receiver_service(client: KafkaClient = Depends(get_kafka_client)) -> WebhookReceiverService:
+    return WebhookReceiverService(client)
+
+
 def handle_webhook_data(webhook_data: WebhookDTO, client: KafkaClient) -> SuccessModel:
     if not webhook_data.data:
         raise HTTPException(status_code=400, detail="Webhook data is empty")
@@ -28,15 +34,16 @@ def handle_webhook_data(webhook_data: WebhookDTO, client: KafkaClient) -> Succes
         raise HTTPException(status_code=500, detail="Failed to process webhook data")
 
 
-@router.post("/save", response_model=SuccessModel, responses=response_models)
-async def save(webhook: WebhookDTO, client: KafkaClient = Depends(get_kafka_client)):
-    return handle_webhook_data(webhook, client)
+@router.post("/save")
+async def save(webhook: WebhookDTO, service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
+    received_data = service.receive_webhook(webhook)
+    logging.info(f"Received data: {received_data}")
+    return received_data
 
 
 @router.get("/get_device_data")
-async def get_all(client: KafkaClient = Depends(get_kafka_client)):
-    print(f'Kafka client {get_kafka_client()}')
-    fetch_data = WebhookReceiverService(client).get_all()
+async def get_all(service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
+    fetch_data = service.get_all()
     return fetch_data
 
 

@@ -3,6 +3,7 @@ from ..dto.kafka_out_dto import KafkaOutDTO
 from ..dto.webhook_in_dto import WebhookDTO
 from confluent_kafka import KafkaException
 from kafka_rs.client.kafka_client import KafkaClient
+from ..shared import messages_consumed_event
 
 
 class KafkaProducerService:
@@ -20,6 +21,8 @@ class KafkaProducerService:
                 uuid=webhook_dto.uuid
             )
             self.kafka_client.send_message(webhook_dto.event, kafka_out_dto.json())
+
+
         except KafkaException as e:
             logging.error(f"Failed to send message: {e}")
             raise

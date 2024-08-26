@@ -1,7 +1,7 @@
 # app/dto/webhook_in_dto.py
 from typing import Optional, Union
 from pydantic import BaseModel, model_validator, ValidationInfo
-from app.api.v1.utils import EventType, EventActionConsume
+from app.api.v1.utils import TopicEvent, TopicActionRequest
 
 
 class WebhookDataDTO(BaseModel):
@@ -13,7 +13,7 @@ class WebhookDataDTO(BaseModel):
 
 
 class WebhookDTO(BaseModel):
-    event: Union[EventType, EventActionConsume]
+    event: Union[TopicEvent, TopicActionRequest]
     data: WebhookDataDTO
     date_time: str
     client_id: str
