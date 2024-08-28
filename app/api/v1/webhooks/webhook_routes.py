@@ -38,7 +38,10 @@ def handle_webhook_data(webhook_data: WebhookDTO, client: KafkaClient) -> Succes
 async def save(webhook: WebhookDTO, service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
     received_data = service.receive_webhook(webhook)
     logging.info(f"Received data: {received_data}")
-    return received_data
+    if not received_data or received_data[0]["status_code"] == 400:
+        raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
+
+    return received_data[0]
 
 
 @router.get("/get_device_data")

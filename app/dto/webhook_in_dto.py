@@ -5,11 +5,14 @@ from app.api.v1.utils import TopicEvent, TopicActionRequest
 
 
 class WebhookDataDTO(BaseModel):
-    temperature: Optional[str] = None
-    humidity: Optional[str] = None
+    temperature_global: Optional[str] = None
+    temperature_local: Optional[str] = None
+    humidity_global: Optional[str] = None
+    humidity_local: Optional[str] = None
+    movement: Optional[bool] = None
     electrical_conductivity: Optional[str] = None
-    co2: Optional[str] = None
-    camera_data: Optional[str] = None
+    air_flow: Optional[str] = None
+    weight: Optional[str] = None
 
 
 class WebhookDTO(BaseModel):
