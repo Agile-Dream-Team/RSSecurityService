@@ -13,6 +13,7 @@ class WebhookDataDTO(BaseModel):
     electrical_conductivity: Optional[str] = None
     air_flow: Optional[str] = None
     weight: Optional[str] = None
+    light_intensity: Optional[str] = None
 
 
 class WebhookDTO(BaseModel):
