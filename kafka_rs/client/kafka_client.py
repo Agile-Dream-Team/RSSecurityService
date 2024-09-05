@@ -23,7 +23,7 @@ def consume_loop(consumer, callback):
             if msg is None:
                 continue
             if msg.error():
-                if msg.error().code() == KafkaError.PARTITION_EOF:
+                if msg.error().code() == KafkaError._PARTITION_EOF:
                     print("End of partition reached.")
                     continue
                 else:
