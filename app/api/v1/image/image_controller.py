@@ -2,12 +2,12 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Depends
 
-from app.dto.webhook_in_dto import WebhookDTO
+from app.dto.webhook_in_dto import SaveDTO
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.webhook_receiver_service import WebhookReceiverService
 from kafka_rs.client import KafkaClient
 
-router = APIRouter()
+image_router = APIRouter()
 
 response_models = {
     400: {"model": ErrorModel},
@@ -24,7 +24,7 @@ def get_webhook_receiver_service(client: KafkaClient = Depends(get_kafka_client)
     return WebhookReceiverService(client)
 
 
-def handle_webhook_data(webhook_data: WebhookDTO, client: KafkaClient) -> SuccessModel:
+def handle_webhook_data(webhook_data: SaveDTO, client: KafkaClient) -> SuccessModel:
     if not webhook_data.data:
         raise HTTPException(status_code=400, detail="Webhook data is empty")
     received_data = WebhookReceiverService(client).receive_webhook(webhook_data)
@@ -34,8 +34,8 @@ def handle_webhook_data(webhook_data: WebhookDTO, client: KafkaClient) -> Succes
         raise HTTPException(status_code=500, detail="Failed to process webhook data")
 
 
-@router.post("/save")
-async def save(webhook: WebhookDTO, service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
+@image_router.post("/")
+async def save(webhook: SaveDTO, service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
     received_data = service.receive_webhook(webhook)
     logging.info(f"Received data: {received_data}")
     if not received_data or received_data[0]["status_code"] == 400:
@@ -44,12 +44,12 @@ async def save(webhook: WebhookDTO, service: WebhookReceiverService = Depends(ge
     return received_data[0]
 
 
-@router.get("/get_device_data")
+@image_router.get("/")
 async def get_all(service: WebhookReceiverService = Depends(get_webhook_receiver_service)):
     fetch_data = service.get_all()
     return fetch_data
 
 
-@router.get("/get_device_data/{device_id}", response_model=SuccessModel, responses=response_models)
-async def get_by_id(device_id: int, client: KafkaClient = Depends(get_kafka_client)):
+@image_router.get("/{image_id}", response_model=SuccessModel, responses=response_models)
+async def get_by_id(record_id: int, client: KafkaClient = Depends(get_kafka_client)):
     pass

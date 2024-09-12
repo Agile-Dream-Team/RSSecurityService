@@ -1,6 +1,6 @@
 import logging
 from ..dto.kafka_out_dto import KafkaOutDTO
-from ..dto.webhook_in_dto import WebhookDTO
+from ..dto.webhook_in_dto import SaveDTO
 from confluent_kafka import KafkaException
 from kafka_rs.client.kafka_client import KafkaClient
 from ..shared import messages_consumed_event
@@ -11,7 +11,7 @@ class KafkaProducerService:
         self.kafka_client = kafka_client
         logging.basicConfig(level=logging.INFO)
 
-    def process_webhook_to_kafka(self, webhook_dto: WebhookDTO):
+    def process_webhook_to_kafka(self, webhook_dto: SaveDTO):
         try:
             kafka_out_dto = KafkaOutDTO(
                 event=webhook_dto.event,

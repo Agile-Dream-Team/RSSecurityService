@@ -16,9 +16,12 @@ class WebhookDataDTO(BaseModel):
     light_intensity: Optional[str] = None
 
 
-class WebhookDTO(BaseModel):
+class SaveDTO(BaseModel):
     event: Union[TopicEvent, TopicActionRequest]
     data: WebhookDataDTO
     date_time: str
     client_id: str
     uuid: str
+
+class ImageDTO(BaseModel):
+    image: str

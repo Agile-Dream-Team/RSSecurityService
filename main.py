@@ -5,7 +5,8 @@ import uvicorn
 from fastapi import FastAPI, status
 from pydantic import BaseModel, ValidationError
 
-from app.api.v1.webhooks.webhook_routes import router as webhook_router
+from app.api.v1.sensor_data.sensor_data_controller import sensor_data_router as sensor_data_router
+from app.api.v1.image.image_controller import image_router as image_router
 from app.config.config import Settings
 from app.shared import messages_get_all_response, messages_consumed_event, messages_save_response
 from kafka_rs.client import KafkaClient
@@ -44,7 +45,8 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 app.router.lifespan_context = lifespan
-app.include_router(webhook_router, prefix="/api/v1")
+app.include_router(sensor_data_router, prefix="/api/v1/sensor_data", tags=["sensor_data"])
+app.include_router(image_router, prefix="/api/v1/image", tags=["image"])
 
 
 class HealthCheck(BaseModel):

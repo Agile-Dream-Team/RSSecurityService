@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any
 
-from app.dto.webhook_in_dto import WebhookDTO
+from app.dto.webhook_in_dto import SaveDTO
 from app.services.kafka_producer_service import KafkaProducerService
 from kafka_rs.client import KafkaClient
 from app.shared import messages_save_response, messages_get_all_response, messages_consumed_event
@@ -15,7 +15,7 @@ class WebhookReceiverService:
         self.client = client
         self.kafka_producer_service = KafkaProducerService(client)
 
-    def receive_webhook(self, webhook_data: WebhookDTO):
+    def receive_webhook(self, webhook_data: SaveDTO):
         messages_save_response.clear()
         messages_consumed_event.clear()  # Clear the event before waiting
         self.kafka_producer_service.process_webhook_to_kafka(webhook_data)
