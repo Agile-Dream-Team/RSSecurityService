@@ -5,10 +5,18 @@ import uvicorn
 from fastapi import FastAPI, status
 from pydantic import BaseModel, ValidationError
 
-from app.api.v1.sensor_data.sensor_data_controller import sensor_data_router as sensor_data_router
-from app.api.v1.image.image_controller import image_router as image_router
+from app.api.v1.prediction_controller import prediction_router
+from app.api.v1.sensor_data_controller import sensor_data_router as sensor_data_router
+from app.api.v1.camera_controller import camera_router as camera_router
 from app.config.config import Settings
-from app.shared import messages_get_all_response, messages_consumed_event, messages_save_response
+from app.shared import (messages_get_all_sensor_data_response,
+                        messages_consumed_sensor_data_event,
+                        messages_consumed_camera_event,
+                        messages_sensor_data_response,
+                        messages_camera_response, messages_get_by_id_sensor_data_response,
+                        messages_get_all_camera_response, messages_get_by_id_camera_response,
+                        messages_prediction_response,
+                        messages_consumed_prediction_event)
 from kafka_rs.client import KafkaClient
 
 
@@ -46,7 +54,8 @@ async def lifespan(fastapi_app: FastAPI):
 
 app.router.lifespan_context = lifespan
 app.include_router(sensor_data_router, prefix="/api/v1/sensor_data", tags=["sensor_data"])
-app.include_router(image_router, prefix="/api/v1/image", tags=["image"])
+app.include_router(camera_router, prefix="/api/v1/camera", tags=["camera"])
+app.include_router(prediction_router, prefix="/api/v1/prediction", tags=["prediction"])
 
 
 class HealthCheck(BaseModel):
@@ -61,26 +70,83 @@ async def get_health() -> HealthCheck:
     return HealthCheck()
 
 
-@kafka_client.topic('get_all_response')
-def consume_message_prod(msg):
+@kafka_client.topic('sensor_data_response')
+def consume_message_save_sensor_data(msg):
     try:
         data = msg.value().decode('utf-8')
-        messages_get_all_response.append(data)
-        logging.info(f"Consumed message in get_all_response: {data}")
-        messages_consumed_event.set()
+        messages_sensor_data_response.append(data)
+        logging.info(f"Consumed message in sensor_data_response: {data}")
+        messages_consumed_sensor_data_event.set()
+        logging.debug("Event set after consuming message.")
     except Exception as e:
-        logging.error(f"Error processing message in get_all_response: {e}")
+        logging.error(f"Error processing message in sensor_data_response: {e}")
 
 
-@kafka_client.topic('save_response')
-def consume_message_get_all(msg):
+@kafka_client.topic('get_all_sensor_data_response')
+def consume_message_get_all_sensor_data(msg):
     try:
         data = msg.value().decode('utf-8')
-        messages_save_response.append(data)
-        logging.info(f"Consumed message in save_response: {data}")
-        messages_consumed_event.set()
+        messages_get_all_sensor_data_response.append(data)
+        logging.info(f"Consumed message in get_all_sensor_data_response: {data}")
+        messages_consumed_sensor_data_event.set()
+        logging.debug("Event set after consuming message.")
     except Exception as e:
-        logging.error(f"Error processing message in save_response: {e}")
+        logging.error(f"Error processing message in get_all_sensor_data_response: {e}")
+
+
+@kafka_client.topic('get_by_id_sensor_data_response')
+def consume_message_get_by_id_sensor_data(msg):
+    try:
+        data = msg.value().decode('utf-8')
+        messages_get_by_id_sensor_data_response.append(data)
+        logging.info(f"Consumed message in get_by_id_response: {data}")
+        messages_consumed_sensor_data_event.set()
+    except Exception as e:
+        logging.error(f"Error processing message in get_by_id_response: {e}")
+
+
+@kafka_client.topic('camera_response')
+def consume_message_camera(msg):
+    try:
+        data = msg.value().decode('utf-8')
+        messages_camera_response.append(data)
+        logging.info(f"Consumed message in camera_response: {data}")
+        messages_consumed_camera_event.set()
+    except Exception as e:
+        logging.error(f"Error processing message in camera_response: {e}")
+
+
+@kafka_client.topic('get_all_camera_response')
+def consume_message_get_all_camera(msg):
+    try:
+        data = msg.value().decode('utf-8')
+        messages_get_all_camera_response.append(data)
+        logging.info(f"Consumed message in get_all_camera_response: {data}")
+        messages_consumed_camera_event.set()
+    except Exception as e:
+        logging.error(f"Error processing message in get_all_camera_response: {e}")
+
+
+@kafka_client.topic('get_by_id_camera_response')
+def consume_message_get_by_id_camera(msg):
+    try:
+        data = msg.value().decode('utf-8')
+        messages_get_by_id_camera_response.append(data)
+        logging.info(f"Consumed message in get_by_id_camera_response: {data}")
+        messages_consumed_camera_event.set()
+    except Exception as e:
+        logging.error(f"Error processing message in get_by_id_camera_response: {e}")
+
+
+@kafka_client.topic('prediction_response')
+def consume_message_prediction(msg):
+    try:
+        data = msg.value().decode('utf-8')
+        messages_prediction_response.append(data)
+        logging.info(f"Consumed message in prediction_response: {data}")
+        messages_consumed_prediction_event.set()
+    except Exception as e:
+        logging.error(f"Error processing message in prediction_response: {e}")
 
 
 if __name__ == "__main__":

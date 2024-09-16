@@ -1,10 +1,9 @@
-# app/dto/webhook_in_dto.py
-from typing import Optional, Union
-from pydantic import BaseModel, model_validator, ValidationInfo
-from app.api.v1.utils import TopicEvent, TopicActionRequest
+from typing import Optional, Union, Dict
+from pydantic import BaseModel
+from app.api.utils import TopicEvent, TopicActionRequest
 
 
-class WebhookDataDTO(BaseModel):
+class SensorDataDTO(BaseModel):
     temperature_global: Optional[str] = None
     temperature_local: Optional[str] = None
     humidity_global: Optional[str] = None
@@ -17,11 +16,9 @@ class WebhookDataDTO(BaseModel):
 
 
 class SaveDTO(BaseModel):
-    event: Union[TopicEvent, TopicActionRequest]
-    data: WebhookDataDTO
+    event_id: str
+    data: SensorDataDTO
     date_time: str
-    client_id: str
+    bucket_id: str
     uuid: str
 
-class ImageDTO(BaseModel):
-    image: str

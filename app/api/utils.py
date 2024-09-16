@@ -1,18 +1,19 @@
 import json
 
-from fastapi import Request, HTTPException, Header
+from fastapi import Request, HTTPException, Header, Depends
 from functools import wraps
 from app.exceptions.custom_exceptions import BadRequestException
 from enum import Enum
 
-# In `app/api/v1/utils.py`
-from app.shared import messages_consumed_event
+from kafka_rs.client import KafkaClient
 
 
-def clear(response_list):
-    response_list.clear()
-    messages_consumed_event.clear()  # Clear the event before waiting
-    messages_consumed_event.wait()
+def get_kafka_client() -> KafkaClient:
+    return KafkaClient.instance()
+
+
+def get_service(service_class, client: KafkaClient = Depends(get_kafka_client)):
+    return service_class(client)
 
 
 async def validate_webhook(request: Request):
