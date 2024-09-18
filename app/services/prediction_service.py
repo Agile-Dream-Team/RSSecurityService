@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any
 
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 from app.shared import messages_prediction_response, messages_consumed_prediction_event
 from app.api.utils import parse_and_flatten_messages
 

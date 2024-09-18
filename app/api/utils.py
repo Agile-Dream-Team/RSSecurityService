@@ -5,7 +5,7 @@ from functools import wraps
 from app.exceptions.custom_exceptions import BadRequestException
 from enum import Enum
 
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 
 
 def get_kafka_client() -> KafkaClient:

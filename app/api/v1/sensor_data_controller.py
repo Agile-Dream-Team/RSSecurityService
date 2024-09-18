@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.dto.sensor_data_dto import SaveDTO
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.sensor_data_service import SensorDataService
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 
 sensor_data_router = APIRouter()
 
@@ -28,8 +28,9 @@ def get_webhook_receiver_service(client: KafkaClient = Depends(get_kafka_client)
 async def save(webhook: SaveDTO, service: SensorDataService = Depends(get_webhook_receiver_service)):
     received_data = service.save_sensor_data(webhook)
     logging.info(f"Received data: {received_data}")
-    if not received_data or received_data[0]["status_code"] == 400:
-        raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
+    if received_data is not None:
+        if received_data[0]["status_code"] == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
 
     return received_data[0]
 

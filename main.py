@@ -17,7 +17,7 @@ from app.shared import (messages_get_all_sensor_data_response,
                         messages_get_all_camera_response, messages_get_by_id_camera_response,
                         messages_prediction_response,
                         messages_consumed_prediction_event)
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 
 
 def configure_logging():
@@ -77,7 +77,7 @@ def consume_message_save_sensor_data(msg):
         messages_sensor_data_response.append(data)
         logging.info(f"Consumed message in sensor_data_response: {data}")
         messages_consumed_sensor_data_event.set()
-        logging.debug("Event set after consuming message.")
+        logging.info("Event set after consuming message.")
     except Exception as e:
         logging.error(f"Error processing message in sensor_data_response: {e}")
 
@@ -89,7 +89,7 @@ def consume_message_get_all_sensor_data(msg):
         messages_get_all_sensor_data_response.append(data)
         logging.info(f"Consumed message in get_all_sensor_data_response: {data}")
         messages_consumed_sensor_data_event.set()
-        logging.debug("Event set after consuming message.")
+        logging.info("Event set after consuming message.")
     except Exception as e:
         logging.error(f"Error processing message in get_all_sensor_data_response: {e}")
 
@@ -156,3 +156,6 @@ if __name__ == "__main__":
         port=app_settings.webhook_port,
         reload=app_settings.environment == 'dev'
     )
+
+
+
