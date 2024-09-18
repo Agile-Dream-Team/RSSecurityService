@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.dto.camera_dto import CameraDTO
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.camera_service import CameraService
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 
 camera_router = APIRouter()
 
@@ -28,8 +28,9 @@ def get_webhook_receiver_service(client: KafkaClient = Depends(get_kafka_client)
 async def save_camera(camera: CameraDTO, service: CameraService = Depends(get_webhook_receiver_service)):
     received_data = service.save_camera(camera)
     logging.info(f"Received data: {received_data}")
-    if not received_data or received_data[0]["status_code"] == 400:
-        raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
+    if received_data is not None:
+        if received_data[0]["status_code"] == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
 
     return received_data[0]
 

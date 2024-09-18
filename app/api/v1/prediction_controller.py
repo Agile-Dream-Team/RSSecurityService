@@ -6,7 +6,7 @@ from app.dto.camera_dto import CameraDTO
 from app.dto.prediction_dto import PredictionDTO
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.prediction_service import PredictionService
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 
 prediction_router = APIRouter()
 

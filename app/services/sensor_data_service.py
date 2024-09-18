@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import Any
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 from app.shared import (
     messages_sensor_data_response,
     messages_get_all_sensor_data_response,
@@ -29,12 +29,12 @@ class SensorDataService:
                 bucket_id=sensor_data_dto.bucket_id,
                 uuid=sensor_data_dto.uuid
             )
-            logging.debug(f"Sending message: {sensor_data_mapper.json()}")
+            logging.info(f"Sending message: {sensor_data_mapper.json()}")
             self.client.send_message("sensor_data", sensor_data_mapper.json())
 
-            logging.debug("Waiting for message consumption event to be set.")
+            logging.info("Waiting for message consumption event to be set.")
             messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
-            logging.debug("Event set, proceeding to parse messages.")
+            logging.info("Event set, proceeding to parse messages.")
 
             response = parse_and_flatten_messages(messages_sensor_data_response)
             logging.info(f"Received data SAVE: {response}")

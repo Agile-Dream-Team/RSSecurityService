@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any
 
-from kafka_rs.client import KafkaClient
+from RSKafkaWrapper.client import KafkaClient
 from app.shared import (
     messages_camera_response,
     messages_get_all_camera_response,
@@ -26,9 +26,9 @@ class CameraService:
                 sensor_data_id=camera_dto.sensor_data_id
             )
             self.client.send_message("camera", camera_mapper.model_dump_json())
-            logging.debug("Waiting for message consumption event to be set.")
+            logging.info("Waiting for message consumption event to be set.")
             messages_consumed_camera_event.wait(timeout=10)
-            logging.debug("Event set, proceeding to parse messages.")
+            logging.info("Event set, proceeding to parse messages.")
             response = parse_and_flatten_messages(messages_camera_response)
             logging.info(f"Received data camera: {response}")
             return response
