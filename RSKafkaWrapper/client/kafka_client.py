@@ -1,4 +1,6 @@
+import json
 import time
+from typing import Union, List, Dict, Any
 
 from confluent_kafka import Consumer, Producer, KafkaException, KafkaError
 from confluent_kafka.admin import AdminClient, NewTopic
@@ -24,15 +26,28 @@ def consume_loop(consumer, callback):
                 continue
             if msg.error():
                 if msg.error().code() == KafkaError._PARTITION_EOF:
-                    print("End of partition reached.")
+                    logging.info("End of partition reached.")
                     continue
                 else:
                     raise KafkaException(msg.error())
 
             start_time = time.time()
-            callback(msg)
-            end_time = time.time()
 
+            # Decode the message from bytes to string
+            data = msg.value().decode('utf-8')
+            logging.info(f"Consumed message: {data}")
+
+            # Deserialize JSON string to dictionary
+            try:
+                json_data = json.loads(data)
+            except json.JSONDecodeError as e:
+                logging.error(f"JSON decoding error: {e}")
+                continue  # Skip this message and continue with the next one
+
+            # Pass the dictionary to the callback
+            callback(json_data)
+
+            end_time = time.time()
             duration = end_time - start_time
             logging.info(f"Processed message in {duration:.10f} seconds")
     except Exception as e:
@@ -63,7 +78,8 @@ class KafkaClient(metaclass=SingletonMeta):
                 logging.error("bootstrap_servers and group_id must be provided for the first instantiation")
                 raise ValueError("bootstrap_servers and group_id must be provided for the first instantiation")
             else:
-                logging.info(f"Creating new instance of KafkaClient with servers: {bootstrap_servers} and group_id: {group_id}")
+                logging.info(
+                    f"Creating new instance of KafkaClient with servers: {bootstrap_servers} and group_id: {group_id}")
                 cls._instance = cls(bootstrap_servers, group_id)
         else:
             logging.info("Returning existing instance of KafkaClient")
@@ -86,7 +102,7 @@ class KafkaClient(metaclass=SingletonMeta):
                 consumer = Consumer(consumer_config)
                 consumer.subscribe([topic])
                 self.consumers[topic] = consumer
-                print(f"Subscribed to topic: {topic}")
+                logging.info(f"Subscribed to topic: {topic}")
 
                 thread = threading.Thread(target=consume_loop, args=(consumer, func), daemon=True)
                 thread.start()
@@ -95,12 +111,31 @@ class KafkaClient(metaclass=SingletonMeta):
 
         return decorator
 
-    def send_message(self, topic, message):
+    def send_message(self, topic: Union[str, List[str]], message: Dict[str, Any]) -> None:
         try:
-            self.producer.produce(topic, message.encode('utf-8'))
+            # Ensure message is a dictionary and serialize it to JSON
+            if not isinstance(message, dict):
+                raise ValueError("Message must be a dictionary")
+
+            # Serialize the dictionary to a JSON string
+            json_message = json.dumps(message)
+
+            # Encode the JSON string to bytes
+            encoded_message = json_message.encode('utf-8')
+
+            # Check if topic is a string (single topic) or a list (multiple topics)
+            if isinstance(topic, str):
+                self.producer.produce(topic, encoded_message)
+                logging.info(f"Message sent to topic {topic}: {json_message}")
+            elif isinstance(topic, list):
+                for t in topic:
+                    self.producer.produce(t, encoded_message)
+                    logging.info(f"Message sent to topic {t}: {json_message}")
+            else:
+                raise ValueError("Topic must be a string or a list of strings")
+
             self.producer.flush()
-            logging.info(f"Message sent to topic {topic}: {message}")
-        except KafkaException as e:
+        except (KafkaException, ValueError) as e:
             logging.error(f"Failed to send message: {e}")
 
     def list_topics(self):

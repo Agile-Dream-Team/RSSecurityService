@@ -1,4 +1,5 @@
 import logging
+import threading
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -9,14 +10,29 @@ from app.api.v1.prediction_controller import prediction_router
 from app.api.v1.sensor_data_controller import sensor_data_router as sensor_data_router
 from app.api.v1.camera_controller import camera_router as camera_router
 from app.config.config import Settings
-from app.shared import (messages_get_all_sensor_data_response,
-                        messages_consumed_sensor_data_event,
-                        messages_consumed_camera_event,
-                        messages_sensor_data_response,
-                        messages_camera_response, messages_get_by_id_sensor_data_response,
-                        messages_get_all_camera_response, messages_get_by_id_camera_response,
-                        messages_prediction_response,
-                        messages_consumed_prediction_event)
+from app.shared import (
+    messages_get_all_sensor_data_response,
+    messages_consumed_sensor_data_event,
+    messages_consumed_camera_event,
+    messages_sensor_data_response,
+    messages_camera_response,
+    messages_get_by_id_sensor_data_response,
+    messages_get_all_camera_response,
+    messages_get_by_id_camera_response,
+    messages_prediction_response,
+    messages_consumed_prediction_event,
+    messages_consumed_get_by_id_camera_event,
+    messages_consumed_get_all_camera_event,
+    messages_consumed_get_by_id_sensor_data_event,
+    messages_consumed_get_all_sensor_data_event,
+    lock_sensor_data_response,
+    lock_get_all_sensor_data_response,
+    lock_get_by_id_sensor_data_response,
+    lock_camera_response,
+    lock_get_all_camera_response,
+    lock_get_by_id_camera_response,
+    lock_prediction_response
+)
 from RSKafkaWrapper.client import KafkaClient
 
 
@@ -73,9 +89,9 @@ async def get_health() -> HealthCheck:
 @kafka_client.topic('sensor_data_response')
 def consume_message_save_sensor_data(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_sensor_data_response.append(data)
-        logging.info(f"Consumed message in sensor_data_response: {data}")
+        with lock_sensor_data_response:
+            messages_sensor_data_response.append(msg)
+        logging.info(f"Consumed message in sensor_data_response: {msg}")
         messages_consumed_sensor_data_event.set()
         logging.info("Event set after consuming message.")
     except Exception as e:
@@ -85,10 +101,10 @@ def consume_message_save_sensor_data(msg):
 @kafka_client.topic('get_all_sensor_data_response')
 def consume_message_get_all_sensor_data(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_get_all_sensor_data_response.append(data)
-        logging.info(f"Consumed message in get_all_sensor_data_response: {data}")
-        messages_consumed_sensor_data_event.set()
+        with lock_get_all_sensor_data_response:
+            messages_get_all_sensor_data_response.append(msg)
+        logging.info(f"Consumed message in get_all_sensor_data_response: {msg}")
+        messages_consumed_get_all_sensor_data_event.set()
         logging.info("Event set after consuming message.")
     except Exception as e:
         logging.error(f"Error processing message in get_all_sensor_data_response: {e}")
@@ -97,10 +113,10 @@ def consume_message_get_all_sensor_data(msg):
 @kafka_client.topic('get_by_id_sensor_data_response')
 def consume_message_get_by_id_sensor_data(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_get_by_id_sensor_data_response.append(data)
-        logging.info(f"Consumed message in get_by_id_response: {data}")
-        messages_consumed_sensor_data_event.set()
+        with lock_get_by_id_sensor_data_response:
+            messages_get_by_id_sensor_data_response.append(msg)
+        logging.info(f"Consumed message in get_by_id_response: {msg}")
+        messages_consumed_get_by_id_sensor_data_event.set()
     except Exception as e:
         logging.error(f"Error processing message in get_by_id_response: {e}")
 
@@ -108,9 +124,9 @@ def consume_message_get_by_id_sensor_data(msg):
 @kafka_client.topic('camera_response')
 def consume_message_camera(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_camera_response.append(data)
-        logging.info(f"Consumed message in camera_response: {data}")
+        with lock_camera_response:
+            messages_camera_response.append(msg)
+        logging.info(f"Consumed message in camera_response: {msg}")
         messages_consumed_camera_event.set()
     except Exception as e:
         logging.error(f"Error processing message in camera_response: {e}")
@@ -119,10 +135,10 @@ def consume_message_camera(msg):
 @kafka_client.topic('get_all_camera_response')
 def consume_message_get_all_camera(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_get_all_camera_response.append(data)
-        logging.info(f"Consumed message in get_all_camera_response: {data}")
-        messages_consumed_camera_event.set()
+        with lock_get_all_camera_response:
+            messages_get_all_camera_response.append(msg)
+        logging.info(f"Consumed message in get_all_camera_response: {msg}")
+        messages_consumed_get_all_camera_event.set()
     except Exception as e:
         logging.error(f"Error processing message in get_all_camera_response: {e}")
 
@@ -130,10 +146,12 @@ def consume_message_get_all_camera(msg):
 @kafka_client.topic('get_by_id_camera_response')
 def consume_message_get_by_id_camera(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_get_by_id_camera_response.append(data)
-        logging.info(f"Consumed message in get_by_id_camera_response: {data}")
-        messages_consumed_camera_event.set()
+        logging.info(f"Received message in get_by_id_camera_response: {msg}")
+        with lock_get_by_id_camera_response:
+            messages_get_by_id_camera_response.append(msg)
+        logging.info(f"Appended message to messages_get_by_id_camera_response: {messages_get_by_id_camera_response}")
+        messages_consumed_get_by_id_camera_event.set()
+        logging.info("Event set for get_by_id_camera_response")
     except Exception as e:
         logging.error(f"Error processing message in get_by_id_camera_response: {e}")
 
@@ -141,9 +159,9 @@ def consume_message_get_by_id_camera(msg):
 @kafka_client.topic('prediction_response')
 def consume_message_prediction(msg):
     try:
-        data = msg.value().decode('utf-8')
-        messages_prediction_response.append(data)
-        logging.info(f"Consumed message in prediction_response: {data}")
+        with lock_prediction_response:
+            messages_prediction_response.append(msg)
+        logging.info(f"Consumed message in prediction_response: {msg}")
         messages_consumed_prediction_event.set()
     except Exception as e:
         logging.error(f"Error processing message in prediction_response: {e}")
@@ -156,6 +174,3 @@ if __name__ == "__main__":
         port=app_settings.webhook_port,
         reload=app_settings.environment == 'dev'
     )
-
-
-
