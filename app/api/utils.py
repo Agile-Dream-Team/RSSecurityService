@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import Request, HTTPException, Header, Depends
 from functools import wraps
@@ -28,16 +29,15 @@ async def validate_x_authorization_header(x_authorization: str = Header(...)):
 
 
 def parse_and_flatten_messages(messages):
-    parsed_messages = [json.loads(message) for message in messages]
-
-    flattened_messages = []
-    for message in parsed_messages:
-        if isinstance(message, list):
-            flattened_messages.extend(message)
-        else:
-            flattened_messages.append(message)
-
-    return flattened_messages
+    try:
+        logging.info(f"Parsing messages: {messages}")
+        # Assuming the function flattens the list of messages
+        flattened_messages = [msg for msg in messages]
+        logging.info(f"Flattened messages: {flattened_messages}")
+        return flattened_messages
+    except Exception as e:
+        logging.error(f"Error parsing messages: {e}")
+        return []
 
 
 class TopicEvent(str, Enum):

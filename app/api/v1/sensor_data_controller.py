@@ -29,8 +29,8 @@ async def save(webhook: SaveDTO, service: SensorDataService = Depends(get_webhoo
     received_data = service.save_sensor_data(webhook)
     logging.info(f"Received data: {received_data}")
     if received_data is not None:
-        if received_data[0]["status_code"] == 400:
-            raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
+        if received_data[0].get("status_code") == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")
 
     return received_data[0]
 
@@ -41,6 +41,11 @@ async def get_all(service: SensorDataService = Depends(get_webhook_receiver_serv
     return fetch_data
 
 
-@sensor_data_router.get("/{record_id}", response_model=SuccessModel, responses=response_models)
-async def get_by_id(record_id: int, client: KafkaClient = Depends(get_kafka_client)):
-    pass
+@sensor_data_router.get("/{record_id}")
+async def get_by_id_sensor_data(record_id: int, service: SensorDataService = Depends(get_webhook_receiver_service)):
+    received_data = service.get_by_id_sensor_data(record_id)
+    logging.info(f"Received data: {received_data}")
+    if received_data is not None:
+        if received_data[0].get("status_code") == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")
+    return received_data[0]

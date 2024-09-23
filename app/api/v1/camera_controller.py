@@ -29,18 +29,23 @@ async def save_camera(camera: CameraDTO, service: CameraService = Depends(get_we
     received_data = service.save_camera(camera)
     logging.info(f"Received data: {received_data}")
     if received_data is not None:
-        if received_data[0]["status_code"] == 400:
-            raise HTTPException(status_code=400, detail=f"{received_data[0]["error"]}")
+        if received_data[0].get("status_code") == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")
 
     return received_data[0]
 
 
 @camera_router.get("/")
 async def get_all_camera(service: CameraService = Depends(get_webhook_receiver_service)):
-    fetch_data = service.get_all_camera()
-    return fetch_data
+    get_all_response = service.get_all_camera()
+    return get_all_response
 
 
-@camera_router.get("/{camera_id}", response_model=SuccessModel, responses=response_models)
-async def get_by_id_camera(camera_id: int, client: KafkaClient = Depends(get_kafka_client)):
-    pass
+@camera_router.get("/{camera_id}")
+async def get_by_id_camera(camera_id: int, service: CameraService = Depends(get_webhook_receiver_service)):
+    received_data = service.get_by_id_camera(camera_id)
+    logging.info(f"Received data: {received_data}")
+    if received_data is not None:
+        if received_data[0].get("status_code") == 400:
+            raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")
+    return received_data[0]
