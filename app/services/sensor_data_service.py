@@ -38,7 +38,8 @@ class SensorDataService:
             self.client.send_message("sensor_data", sensor_data_mapper.model_dump())
 
             logging.info("Waiting for message consumption event to be set.")
-            messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
+            #messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
+            messages_consumed_sensor_data_event.wait()
             logging.info("Event set, proceeding to parse messages.")
 
             with lock_sensor_data_response:

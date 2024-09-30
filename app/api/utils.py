@@ -30,10 +30,7 @@ async def validate_x_authorization_header(x_authorization: str = Header(...)):
 
 def parse_and_flatten_messages(messages):
     try:
-        logging.info(f"Parsing messages: {messages}")
-        # Assuming the function flattens the list of messages
         flattened_messages = [msg for msg in messages]
-        logging.info(f"Flattened messages: {flattened_messages}")
         return flattened_messages
     except Exception as e:
         logging.error(f"Error parsing messages: {e}")

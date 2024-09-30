@@ -35,7 +35,8 @@ class CameraService:
             )
             self.client.send_message("camera", camera_mapper.model_dump())
             logging.info("Waiting for message consumption event to be set.")
-            messages_consumed_camera_event.wait(timeout=10)
+            #messages_consumed_camera_event.wait(timeout=10)
+            messages_consumed_camera_event.wait()
             logging.info("Event set, proceeding to parse messages.")
             with lock_camera_response:
                 response = parse_and_flatten_messages(messages_camera_response)
