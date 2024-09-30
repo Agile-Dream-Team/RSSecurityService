@@ -35,7 +35,7 @@ class CameraService:
                 sensor_data_id=camera_dto.sensor_data_id
             )
             self.client.send_message("camera", camera_mapper.model_dump())
-            time.sleep(0.5)
+            time.sleep(5)
             #logging.info("Waiting for message consumption event to be set.")
             #messages_consumed_camera_event.wait(timeout=10)
             #messages_consumed_camera_event.wait()
