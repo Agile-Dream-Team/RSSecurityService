@@ -49,6 +49,7 @@ app = FastAPI()
 kafka_client = KafkaClient.instance(app_settings.kafka_bootstrap_servers, app_settings.kafka_group_id)
 
 
+
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
     try:
