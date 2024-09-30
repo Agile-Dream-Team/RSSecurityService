@@ -29,7 +29,7 @@ async def save_camera(camera: CameraDTO, service: CameraService = Depends(get_we
     received_data = service.save_camera(camera)
     logging.info(f"Received data SAVE camera: {received_data}")
     if received_data is not None:
-        if received_data[0].get("status_code") == 400:
+        if received_data.get("status_code") is not None and received_data.get("status_code") == 400:
             raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")
 
     return received_data[0]
