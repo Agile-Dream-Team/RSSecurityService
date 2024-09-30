@@ -27,7 +27,7 @@ def get_webhook_receiver_service(client: KafkaClient = Depends(get_kafka_client)
 @camera_router.post("/")
 async def save_camera(camera: CameraDTO, service: CameraService = Depends(get_webhook_receiver_service)):
     received_data = service.save_camera(camera)
-    logging.info(f"Received data: {received_data}")
+    logging.info(f"Received data SAVE camera: {received_data}")
     if received_data is not None:
         if received_data[0].get("status_code") == 400:
             raise HTTPException(status_code=400, detail=f"{received_data[0].get('error')}")

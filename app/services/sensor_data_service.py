@@ -1,6 +1,7 @@
 import json
 import logging
 import threading
+import time
 from typing import Any
 from RSKafkaWrapper.client import KafkaClient
 from app.shared import (
@@ -23,9 +24,9 @@ class SensorDataService:
     def save_sensor_data(self, sensor_data_dto):
         try:
             logging.debug("Clearing previous messages and events.")
-            with lock_sensor_data_response:
-                messages_sensor_data_response.clear()
-            messages_consumed_sensor_data_event.clear()
+            #with lock_sensor_data_response:
+            messages_sensor_data_response.clear()
+            #messages_consumed_sensor_data_event.clear()
 
             sensor_data_mapper = SensorDataMapper(
                 event_id=sensor_data_dto.event_id,
@@ -36,14 +37,14 @@ class SensorDataService:
             )
             logging.info(f"Sending message: {sensor_data_mapper.model_dump()}")
             self.client.send_message("sensor_data", sensor_data_mapper.model_dump())
-
+            time.sleep(0.5)
             logging.info("Waiting for message consumption event to be set.")
             #messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
-            messages_consumed_sensor_data_event.wait()
+            #messages_consumed_sensor_data_event.wait()
             logging.info("Event set, proceeding to parse messages.")
 
-            with lock_sensor_data_response:
-                response = parse_and_flatten_messages(messages_sensor_data_response)
+            #with lock_sensor_data_response:
+            response = parse_and_flatten_messages(messages_sensor_data_response)
             logging.info(f"Received data SAVE: {response}")
             return response
 
@@ -54,20 +55,20 @@ class SensorDataService:
     def get_all_sensor_data(self):
         try:
             logging.info("Clearing previous messages and events.")
-            with lock_get_all_sensor_data_response:
-                messages_get_all_sensor_data_response.clear()
-            messages_consumed_sensor_data_event.clear()
+            #with lock_get_all_sensor_data_response:
+            messages_get_all_sensor_data_response.clear()
+            #messages_consumed_sensor_data_event.clear()
 
             to_send = {"event": "get_all"}
             logging.info(f"Sending message: {to_send}")
             self.client.send_message("get_all_sensor_data", to_send)
-
+            time.sleep(1)
             logging.info("Waiting for message consumption event to be set.")
-            messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
+            #messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
             logging.info("Event set, proceeding to parse messages.")
 
-            with lock_get_all_sensor_data_response:
-                response = parse_and_flatten_messages(messages_get_all_sensor_data_response)
+            #with lock_get_all_sensor_data_response:
+            response = parse_and_flatten_messages(messages_get_all_sensor_data_response)
             logging.info(f"Received data GET ALL: {response}")
             return response
 
@@ -77,22 +78,23 @@ class SensorDataService:
 
     def get_by_id_sensor_data(self, record_id: int):
         try:
-            with lock_get_by_id_sensor_data_response:
-                messages_get_by_id_sensor_data_response.clear()
-            messages_consumed_get_by_id_sensor_data_event.clear()  # Clear the event before waiting
+            #with lock_get_by_id_sensor_data_response:
+            messages_get_by_id_sensor_data_response.clear()
+            #messages_consumed_get_by_id_sensor_data_event.clear()  # Clear the event before waiting
             to_send = {
                 "event": "get_by_id",
                 "id": record_id
             }
             self.client.send_message("get_by_id_sensor_data", to_send)
+            time.sleep(0.5)
             logging.info("Waiting for message consumption event to be set.")
-            messages_consumed_get_by_id_sensor_data_event.wait(timeout=10)
+            #messages_consumed_get_by_id_sensor_data_event.wait(timeout=10)
             logging.info("Event set, proceeding to parse messages.")
 
             logging.info(f"Messages before parsing: {messages_get_by_id_sensor_data_response}")
 
-            with lock_get_by_id_sensor_data_response:
-                response = parse_and_flatten_messages(messages_get_by_id_sensor_data_response)
+            #with lock_get_by_id_sensor_data_response:
+            response = parse_and_flatten_messages(messages_get_by_id_sensor_data_response)
             logging.info(f"Received data sensor_data: {response}")
             return response
         except Exception as e:
