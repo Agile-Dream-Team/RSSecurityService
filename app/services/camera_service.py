@@ -35,9 +35,8 @@ class CameraService:
                 sensor_data_id=camera_dto.sensor_data_id
             )
             self.client.send_message("camera", camera_mapper.model_dump())
-            time.sleep(5)
             #logging.info("Waiting for message consumption event to be set.")
-            #messages_consumed_camera_event.wait(timeout=10)
+            messages_consumed_camera_event.wait(timeout=10)
             #messages_consumed_camera_event.wait()
             #logging.info("Event set, proceeding to parse messages.")
             #with lock_camera_response:
@@ -58,9 +57,8 @@ class CameraService:
                 "event": "get_all"
             }
             self.client.send_message("get_all_camera", to_send)
-            time.sleep(1)
             logging.info("Waiting for message consumption event to be set.")
-            #messages_consumed_camera_event.wait(timeout=10)
+            messages_consumed_camera_event.wait(timeout=10)
             logging.info("Event set, proceeding to parse messages.")
             #with lock_get_all_camera_response:
             response = parse_and_flatten_messages(messages_get_all_camera_response)
@@ -81,9 +79,8 @@ class CameraService:
                 "id": record_id
             }
             self.client.send_message("get_by_id_camera", to_send)
-            time.sleep(0.5)
             logging.info("Waiting for message consumption event to be set.")
-            #messages_consumed_get_by_id_camera_event.wait(timeout=10)
+            messages_consumed_get_by_id_camera_event.wait(timeout=10)
             logging.info("Event set, proceeding to parse messages.")
 
             logging.info(f"Messages before parsing: {messages_get_by_id_camera_response}")

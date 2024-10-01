@@ -37,7 +37,6 @@ class SensorDataService:
             )
             logging.info(f"Sending message: {sensor_data_mapper.model_dump()}")
             self.client.send_message("sensor_data", sensor_data_mapper.model_dump())
-            time.sleep(0.5)
             logging.info("Waiting for message consumption event to be set.")
             messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
             #messages_consumed_sensor_data_event.wait()
@@ -62,9 +61,9 @@ class SensorDataService:
             to_send = {"event": "get_all"}
             logging.info(f"Sending message: {to_send}")
             self.client.send_message("get_all_sensor_data", to_send)
-            time.sleep(1)
+
             logging.info("Waiting for message consumption event to be set.")
-            #messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
+            messages_consumed_sensor_data_event.wait(timeout=10)  # Add a timeout for safety
             logging.info("Event set, proceeding to parse messages.")
 
             #with lock_get_all_sensor_data_response:
@@ -88,7 +87,7 @@ class SensorDataService:
             self.client.send_message("get_by_id_sensor_data", to_send)
             time.sleep(0.5)
             logging.info("Waiting for message consumption event to be set.")
-            #messages_consumed_get_by_id_sensor_data_event.wait(timeout=10)
+            messages_consumed_get_by_id_sensor_data_event.wait(timeout=10)
             logging.info("Event set, proceeding to parse messages.")
 
             logging.info(f"Messages before parsing: {messages_get_by_id_sensor_data_response}")
