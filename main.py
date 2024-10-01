@@ -93,7 +93,7 @@ def consume_message_save_sensor_data(msg):
         #with lock_sensor_data_response:
         messages_sensor_data_response.append(msg)
         logging.info(f"Consumed message in sensor_data_response: {msg}")
-        #messages_consumed_sensor_data_event.set()
+        messages_consumed_sensor_data_event.set()
         logging.info("Event set after consuming message.")
     except Exception as e:
         logging.error(f"Error processing message in sensor_data_response: {e}")
