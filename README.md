@@ -32,11 +32,11 @@ Go to the project directory
 ```
 Create virtual environment
 ```bash
-  python3 -m venv .venv
+  python3 -m venv your_venv_name
 ```
 Activate virtual environment
 ```bash
-  source .venv/bin/activate
+  source your_venv_name/bin/activate
 ```
 Install dependencies
 
@@ -44,17 +44,10 @@ Install dependencies
   pip install -r /path/to/requirements.txt
 ```
 
-Start the server in development environment
+Modify the .env file with the correct values and run main.py
 ```bash
-  fastapi dev main.py
+  python3 main.py
 ```
-
-or 
-
-```bash
-  fastapi run main.py
-```
-For production environment.
 
 In case you want to run it with Docker, execute
 ```bash

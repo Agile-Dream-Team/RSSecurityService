@@ -4,8 +4,13 @@ services:
   middleware:
     build: .
     ports:
-      - "8000:8000"
+      - "${WEBHOOK_PORT}:${WEBHOOK_PORT}"
     environment:
       - MODULE_NAME=main
       - VARIABLE_NAME=app
-      - PORT=8000
+      - WEBHOOK_PORT=${WEBHOOK_PORT}
+      - WEBHOOK_HOST=${WEBHOOK_HOST}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - KAFKA_TOPICS=${KAFKA_TOPICS}
+    env_file:
+      - .env

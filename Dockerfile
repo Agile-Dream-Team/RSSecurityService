@@ -11,5 +11,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project directory into the container at /code
 COPY . /code/
 
+# Set environment variables
+ENV WEBHOOK_PORT=8000
+ENV WEBHOOK_HOST=0.0.0.0
+ENV ENVIRONMENT=prod
+
 # Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn main:app --host $WEBHOOK_HOST --port $WEBHOOK_PORT $(if [ \"$ENVIRONMENT\" = \"dev\" ]; then echo '--reload'; fi)"]
