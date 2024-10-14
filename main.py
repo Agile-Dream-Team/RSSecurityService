@@ -70,9 +70,9 @@ async def lifespan(fastapi_app: FastAPI):
 
 
 app.router.lifespan_context = lifespan
-app.include_router(sensor_data_router, prefix="/api/v1/sensor_data", tags=["sensor_data"])
-app.include_router(camera_router, prefix="/api/v1/camera", tags=["camera"])
-app.include_router(prediction_router, prefix="/api/v1/prediction", tags=["prediction"])
+app.include_router(sensor_data_router, prefix="/middleware/api/v1/sensor_data", tags=["sensor_data"])
+app.include_router(camera_router, prefix="/middleware/api/v1/camera", tags=["camera"])
+app.include_router(prediction_router, prefix="/middleware/api/v1/prediction", tags=["prediction"])
 
 
 class HealthCheck(BaseModel):
