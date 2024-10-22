@@ -35,20 +35,18 @@ from app.shared import (
 )
 from RSKafkaWrapper.client import KafkaClient
 
+base_path = '/middleware'
 
 def configure_logging():
     logging.basicConfig(level=logging.INFO)
 
-
 configure_logging()
 
 app_settings = Settings()
-app = FastAPI()
+app = FastAPI(docs_url=f'{base_path}/docs')
 
 # Initialize KafkaClient using the singleton pattern
 kafka_client = KafkaClient.instance(app_settings.kafka_bootstrap_servers, app_settings.kafka_group_id)
-
-
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
@@ -68,24 +66,20 @@ async def lifespan(fastapi_app: FastAPI):
 
     yield
 
-
 app.router.lifespan_context = lifespan
-app.include_router(sensor_data_router, prefix="/api/v1/sensor_data", tags=["sensor_data"])
-app.include_router(camera_router, prefix="/api/v1/camera", tags=["camera"])
-app.include_router(prediction_router, prefix="/api/v1/prediction", tags=["prediction"])
-
+app.include_router(sensor_data_router, prefix=f"{base_path}/api/v1/sensor_data", tags=["sensor_data"])
+app.include_router(camera_router, prefix=f"{base_path}/api/v1/camera", tags=["camera"])
+app.include_router(prediction_router, prefix=f"{base_path}/api/v1/prediction", tags=["prediction"])
 
 class HealthCheck(BaseModel):
     webhook_status: str = "OK"
     kafka_status: str = "Not implemented"
     msg: str = "Hello world"
 
-
-@app.get("/", response_model=HealthCheck, status_code=status.HTTP_200_OK)
+@app.get(base_path, response_model=HealthCheck, status_code=status.HTTP_200_OK)
 async def get_health() -> HealthCheck:
     logging.info("Health check endpoint called")
     return HealthCheck()
-
 
 @kafka_client.topic('sensor_data_response')
 def consume_message_save_sensor_data(msg):
@@ -98,7 +92,6 @@ def consume_message_save_sensor_data(msg):
     except Exception as e:
         logging.error(f"Error processing message in sensor_data_response: {e}")
 
-
 @kafka_client.topic('get_all_sensor_data_response')
 def consume_message_get_all_sensor_data(msg):
     try:
@@ -110,7 +103,6 @@ def consume_message_get_all_sensor_data(msg):
     except Exception as e:
         logging.error(f"Error processing message in get_all_sensor_data_response: {e}")
 
-
 @kafka_client.topic('get_by_id_sensor_data_response')
 def consume_message_get_by_id_sensor_data(msg):
     try:
@@ -120,7 +112,6 @@ def consume_message_get_by_id_sensor_data(msg):
         messages_consumed_get_by_id_sensor_data_event.set()
     except Exception as e:
         logging.error(f"Error processing message in get_by_id_response: {e}")
-
 
 @kafka_client.topic('camera_response')
 def consume_message_camera(msg):
@@ -132,7 +123,6 @@ def consume_message_camera(msg):
     except Exception as e:
         logging.error(f"Error processing message in camera_response: {e}")
 
-
 @kafka_client.topic('get_all_camera_response')
 def consume_message_get_all_camera(msg):
     try:
@@ -142,7 +132,6 @@ def consume_message_get_all_camera(msg):
         messages_consumed_get_all_camera_event.set()
     except Exception as e:
         logging.error(f"Error processing message in get_all_camera_response: {e}")
-
 
 @kafka_client.topic('get_by_id_camera_response')
 def consume_message_get_by_id_camera(msg):
@@ -156,7 +145,6 @@ def consume_message_get_by_id_camera(msg):
     except Exception as e:
         logging.error(f"Error processing message in get_by_id_camera_response: {e}")
 
-
 @kafka_client.topic('prediction_response')
 def consume_message_prediction(msg):
     try:
@@ -166,7 +154,6 @@ def consume_message_prediction(msg):
         messages_consumed_prediction_event.set()
     except Exception as e:
         logging.error(f"Error processing message in prediction_response: {e}")
-
 
 if __name__ == "__main__":
     uvicorn.run(
