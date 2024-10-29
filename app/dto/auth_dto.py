@@ -24,8 +24,14 @@ class ResendCodeDTO(BaseModel):
     email: EmailStr
 
 
-class ResetPasswordDTO(BaseModel):
+class ResetPasswordRequestDTO(BaseModel):
     email: EmailStr
+
+
+class ResetPasswordConfirmDTO(BaseModel):
+    email: EmailStr
+    confirmation_code: str
+    new_password: str
 
 
 class ConfirmPasswordDTO(BaseModel):

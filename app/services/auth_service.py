@@ -12,14 +12,14 @@ from app.shared import lock_user_response, messages_user_response, messages_cons
 
 
 class AuthService:
-    def __init__(self, client: KafkaClient, user_cognito_pool_id, cognito_client_id):
+    def __init__(self, kafka_client: KafkaClient, user_cognito_pool_id, cognito_client_id):
         """
         Initialize the Auth Service with Cognito configuration
         """
         self.logger = logging.getLogger(self.__class__.__name__)
         self.user_cognito_pool_id = user_cognito_pool_id
         self.client_id = cognito_client_id
-        self.client = client
+        self.kafka_client = kafka_client
         # Initialize regular Cognito client
         self.cognito_client = boto3.client('cognito-idp')
 
@@ -66,7 +66,7 @@ class AuthService:
 
             self.logger.info(cognito_response)
 
-            self.client.send_message("user_request", user_mapper.model_dump())
+            self.kafka_client.send_message("user_request", user_mapper.model_dump())
 
             messages_consumed_user_event.wait(timeout=10)  # Add a timeout for safety
             # messages_consumed_sensor_data_event.wait()
@@ -202,3 +202,71 @@ class AuthService:
         except ClientError as e:
             self.logger.error(f"Error refreshing tokens: {str(e)}")
             raise Exception(f"Error refreshing tokens: {str(e)}")
+
+    async def request_password_reset(self, email: str) -> Dict[str, Any]:
+        """
+        Initiate password reset process
+        """
+        try:
+            self.logger.info(f"Initiating password reset for user: {email}")
+
+            response = self.cognito_client.forgot_password(
+                ClientId=self.client_id,
+                Username=email
+            )
+
+            # Log where the code was sent (email/phone)
+            delivery_details = response.get('CodeDeliveryDetails', {})
+            self.logger.info(
+                f"Reset code sent via {delivery_details.get('DeliveryMedium')} to {delivery_details.get('Destination')}")
+
+            return {
+                'message': 'Password reset code has been sent',
+                'delivery_medium': delivery_details.get('DeliveryMedium'),
+                'destination': delivery_details.get('Destination')
+            }
+
+        except self.cognito_client.exceptions.UserNotFoundException:
+            self.logger.error(f"User not found: {email}")
+            raise Exception("User not found")
+        except self.cognito_client.exceptions.InvalidParameterException as e:
+            self.logger.error(f"Invalid parameters: {str(e)}")
+            raise Exception(f"Invalid parameters: {str(e)}")
+        except self.cognito_client.exceptions.LimitExceededException:
+            self.logger.error("Too many requests")
+            raise Exception("Too many password reset attempts. Please try again later")
+        except Exception as e:
+            self.logger.error(f"Error requesting password reset: {str(e)}")
+            raise Exception(f"Error requesting password reset: {str(e)}")
+
+    async def confirm_password_reset(self, email: str, confirmation_code: str, new_password: str) -> Dict[str, Any]:
+        """
+        Confirm password reset with verification code
+        """
+        try:
+            self.logger.info(f"Confirming password reset for user: {email}")
+
+            response = self.cognito_client.confirm_forgot_password(
+                ClientId=self.client_id,
+                Username=email,
+                ConfirmationCode=confirmation_code,
+                Password=new_password
+            )
+
+            return {
+                'message': 'Password has been reset successfully',
+                'email': email
+            }
+
+        except self.cognito_client.exceptions.CodeMismatchException:
+            self.logger.error("Invalid verification code")
+            raise Exception("Invalid verification code")
+        except self.cognito_client.exceptions.ExpiredCodeException:
+            self.logger.error("Verification code has expired")
+            raise Exception("Verification code has expired")
+        except self.cognito_client.exceptions.InvalidPasswordException as e:
+            self.logger.error(f"Invalid password: {str(e)}")
+            raise Exception(f"Invalid password: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Error confirming password reset: {str(e)}")
+            raise Exception(f"Error confirming password reset: {str(e)}")

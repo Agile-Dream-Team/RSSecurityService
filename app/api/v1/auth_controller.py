@@ -8,7 +8,7 @@ from app.dto.auth_dto import (
     RegisterUserDTO,
     LoginUserDTO,
     ConfirmUserDTO,
-    ResendCodeDTO
+    ResendCodeDTO, ResetPasswordRequestDTO, ResetPasswordConfirmDTO
 )
 from app.responses.custom_responses import SuccessModel, ErrorModel
 from app.services.auth_service import AuthService
@@ -173,5 +173,63 @@ async def refresh_token(
         logger.error(f"Token refresh failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e)
+        )
+
+
+@auth_router.post(
+    "/reset-password/request",
+    response_model=SuccessModel,
+    responses={**response_models}
+)
+async def request_password_reset(
+        reset_request: ResetPasswordRequestDTO,
+        auth_service: AuthService = Depends(get_auth_service)
+) -> SuccessModel:
+    """
+    Request a password reset code
+    """
+    try:
+        logger.info(f"Password reset requested for: {reset_request.email}")
+        result = await auth_service.request_password_reset(reset_request.email)
+        return SuccessModel(
+            message="Password reset code sent successfully",
+            data=result
+        )
+    except Exception as e:
+        logger.error(f"Password reset request failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@auth_router.post(
+    "/reset-password/confirm",
+    response_model=SuccessModel,
+    responses={**response_models}
+)
+async def confirm_password_reset(
+    reset_confirm: ResetPasswordConfirmDTO,
+    auth_service: AuthService = Depends(get_auth_service)
+) -> SuccessModel:
+    """
+    Confirm password reset with verification code
+    """
+    try:
+        logger.info(f"Confirming password reset for: {reset_confirm.email}")
+        result = await auth_service.confirm_password_reset(
+            reset_confirm.email,
+            reset_confirm.confirmation_code,
+            reset_confirm.new_password
+        )
+        return SuccessModel(
+            message="Password reset successful",
+            data=result
+        )
+    except Exception as e:
+        logger.error(f"Password reset confirmation failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
