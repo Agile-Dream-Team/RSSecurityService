@@ -1,12 +1,12 @@
+# app/responses/custom_responses.py
 from pydantic import BaseModel
-from typing import Dict, Any
-
-
-class SuccessModel(BaseModel):
-    status: str = "success"
-    data: Dict[str, Any]
+from typing import Any, Optional
 
 
 class ErrorModel(BaseModel):
-    status: str = "error"
-    error: str
+    detail: str
+
+
+class SuccessModel(BaseModel):
+    message: str
+    data: Optional[Any] = None

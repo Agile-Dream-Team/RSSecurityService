@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  middleware:
+  security:
     build: .
     ports:
       - "${WEBHOOK_PORT}:${WEBHOOK_PORT}"
@@ -12,5 +12,7 @@ services:
       - WEBHOOK_HOST=${WEBHOOK_HOST}
       - ENVIRONMENT=${ENVIRONMENT}
       - KAFKA_TOPICS=${KAFKA_TOPICS}
+      - USER_COGNITO_POOL_ID=${USER_COGNITO_POOL_ID}
+      - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
     env_file:
       - .env
