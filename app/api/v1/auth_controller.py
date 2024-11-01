@@ -16,7 +16,8 @@ from app.config.config import Settings
 
 logger = logging.getLogger(__name__)
 
-auth_router = APIRouter(prefix="/auth/api/v1", tags=["Authentication"])
+# Add the /api/v1 prefix here
+auth_router = APIRouter(tags=["Authentication"])
 
 response_models = {
     400: {"model": ErrorModel},
